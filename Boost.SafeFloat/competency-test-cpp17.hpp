@@ -1,5 +1,5 @@
-#ifndef BOOST_COMPETENCY_TEST_CPP17_HPP
-#define BOOST_COMPETENCY_TEST_CPP17_HPP
+#ifndef COMPETENCY_TEST_CPP17_HPP
+#define COMPETENCY_TEST_CPP17_HPP
 
 #include <tuple>
 #include <vector>
@@ -400,6 +400,24 @@ namespace test
             else
                 return detail::test_dec<float, STR...>();
         }
+
+        template<char... STR>
+        constexpr auto operator""_sd()
+        {
+            if constexpr(detail::has_hex_prefix<STR...>())
+                return detail::test_hex<double, STR...>();
+            else
+                return detail::test_dec<double, STR...>();
+        }
+
+        template<char... STR>
+        constexpr auto operator""_sld()
+        {
+            if constexpr(detail::has_hex_prefix<STR...>())
+                return detail::test_hex<long double, STR...>();
+            else
+                return detail::test_dec<long double, STR...>();
+        }
     }
 }   
-#endif //BOOST_COMPETENCY_TEST_CPP17_HPP
+#endif //COMPETENCY_TEST_CPP17_HPP
