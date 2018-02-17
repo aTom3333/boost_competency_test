@@ -78,7 +78,7 @@ namespace test
         template<typename T>
         struct always_false
         { static constexpr bool value = false; };
-        
+
         // A constexpr version of isxdigit working on ASCII
         constexpr bool isxdigit(char c)
         {
@@ -86,14 +86,26 @@ namespace test
                     or (c >= 'a' and c <= 'f')
                     or (c >= 'A' and c <= 'F'));
         }
-        
+
+        // A constexpr version of isdigit working on ASCII
+        constexpr bool isdigit(char c)
+        {
+            return (c >= '0' and c <= '9');
+        }
+
         // constexpr function to get the represented value of a hex digit
         constexpr int hexvalue(char xdigit)
         {
             return (xdigit >= '0' and xdigit <= '9') ? xdigit - '0'
-                 : (xdigit >= 'a' and xdigit <= 'f') ? xdigit - 'a' + 10
-                 : (xdigit >= 'A' and xdigit <= 'F') ? xdigit - 'A' + 10
-                 : 0;
+                                                     : (xdigit >= 'a' and xdigit <= 'f') ? xdigit - 'a' + 10
+                                                                                         : (xdigit >= 'A' and xdigit <= 'F') ? xdigit - 'A' + 10
+                                                                                                                             : 0;
+        }
+
+        // constexpr function to get the represented value of a digit
+        constexpr int decvalue(char digit)
+        {
+            return (digit >= '0' and digit <= '9') ? digit-'0' : 0;
         }
         
         // constexpr function that count bit equal to 1
@@ -147,12 +159,12 @@ namespace test
         }
         
         /*
-         * Hex parsing related functions (better understanding by reading from bottom to top
+         * Hex parsing related functions (better understanding by reading from bottom to top)
          */
         
         // Function used to validate the number and returning its value
         template<typename RT, unsigned long long MANTISSA, int POW, bool SIGN, int EXPONENT>
-        RT validate_hex()
+        constexpr RT validate_hex()
         {
             // Is it a power of two ?
             static_assert(count_bit(MANTISSA) == 1, VALUE_ERROR);
@@ -166,30 +178,30 @@ namespace test
         
         // Function used to parse the digit of the exponent
         template<typename RT, unsigned long long MANTISSA, int POW, bool SIGN, int EXPONENT>
-        RT parse_hex_exponent()
+        constexpr RT parse_hex_exponent()
         {
             return validate_hex<RT, MANTISSA, POW, SIGN, EXPONENT>();
         }
         
         template<typename RT, unsigned long long MANTISSA, int POW, bool SIGN, 
                  int EXPONENT, char FIRST, char... REST>
-        RT parse_hex_exponent()
+        constexpr RT parse_hex_exponent()
         {
-            static_assert(isxdigit(FIRST), HEX_PARSE_ERROR);
-            return parse_hex_exponent<RT, MANTISSA, POW, SIGN, EXPONENT*10 + hexvalue(FIRST), REST...>();
+            static_assert(isdigit(FIRST), HEX_PARSE_ERROR);
+            return parse_hex_exponent<RT, MANTISSA, POW, SIGN, EXPONENT*10 + decvalue(FIRST), REST...>();
         }
         
         
         // This function parses the first character after the 'p'
         template<typename RT, unsigned long long MANTISSA, int POW>
-        RT parse_hex_exponent_sign()
+        constexpr RT parse_hex_exponent_sign()
         {
             static_assert(always_false<RT>::value, HEX_PARSE_ERROR);
             return RT{};
         }
         
         template<typename RT, unsigned long long MANTISSA, int POW, char FIRST, char... REST>
-        RT parse_hex_exponent_sign()
+        constexpr RT parse_hex_exponent_sign()
         {
             static_assert(isxdigit(FIRST) or FIRST == '+' or FIRST == '-',
                           HEX_PARSE_ERROR);
@@ -209,14 +221,14 @@ namespace test
         
         // Function used to parse the characters of a hex float literal that appear after the period
         template<typename RT, unsigned long long MANTISSA, int POW>
-        RT parse_hex_post_period()
+        constexpr RT parse_hex_post_period()
         {
             static_assert(always_false<RT>::value, HEX_PARSE_ERROR);
             return RT{};
         }
         
         template<typename RT, unsigned long long MANTISSA, int POW, char FIRST, char... REST>
-        RT parse_hex_post_period()
+        constexpr RT parse_hex_post_period()
         {
             static_assert(isxdigit(FIRST) or FIRST == 'p' or FIRST == 'P',
                           HEX_PARSE_ERROR);
@@ -229,7 +241,7 @@ namespace test
         
         // Function used to parse the characters of a hex float literal that appear before the period
         template<typename RT, unsigned long long MANTISSA>
-        RT parse_hex_pre_period()
+        constexpr RT parse_hex_pre_period()
         {
             // If they are no more characters and we're here it means that is not a good hex float literal
             static_assert(always_false<RT>::value, HEX_PARSE_ERROR);
@@ -237,7 +249,7 @@ namespace test
         }
         
         template<typename RT, unsigned long long MANTISSA, char FIRST, char... REST>
-        RT parse_hex_pre_period()
+        constexpr RT parse_hex_pre_period()
         {
             static_assert(isxdigit(FIRST) or FIRST == '.' or FIRST == 'p' or FIRST == 'P',
                           HEX_PARSE_ERROR);
@@ -251,7 +263,7 @@ namespace test
         
         
         template<typename RT, char FIRST, char SECOND, char... REST>
-        RT test_hex()
+        constexpr RT test_hex()
         {
             // Discard 2 first char as they are the hex marker
             return parse_hex_pre_period<RT, 0, REST...>();
@@ -260,11 +272,117 @@ namespace test
 
 
         /*
-         * Dec parsing related functions (better understanding by reading from bottom to top
+         * Dec parsing related functions (better understanding by reading from bottom to top)
          */
         
+        // Test if value is power of 0.5 by recursively multiplying it by 2 and compare with 1
+        template<typename RT>
+        constexpr bool is_pow_of_0_5_impl(RT value)
+        {
+            return value == 1 ? true
+                 : value > 1 ? false
+                 : is_pow_of_0_5_impl(2*value);
+        }
         
-        //template<typename RT
+        template<typename RT>
+        constexpr bool is_pow_of_0_5(RT value)
+        {
+            return is_pow_of_0_5_impl(2*value);
+        }
+        
+        // Validate value and returns it
+        template<typename RT, unsigned long long MANTISSA, int POW, bool SIGN, int EXPONENT>
+        constexpr RT validate_dec()
+        {
+            constexpr RT value = MANTISSA * trivial_pow(10.0l, POW + (SIGN?EXPONENT:-EXPONENT));
+            static_assert(is_pow_of_0_5(value), VALUE_ERROR);
+            return value;
+        }
+        
+        
+        // This function parses the exponent past the first character
+        template<typename RT, unsigned long long MANTISSA, int POW, bool SIGN, int EXPONENT>
+        constexpr RT parse_dec_exponent()
+        {
+            return validate_dec<RT, MANTISSA, POW, SIGN, EXPONENT>();
+        }
+        
+        template<typename RT, unsigned long long MANTISSA, int POW, bool SIGN,
+                 int EXPONENT, char FIRST, char... REST>
+        constexpr RT parse_dec_exponent()
+        {
+            static_assert(isdigit(FIRST), DEC_PARSE_ERROR);
+            return parse_dec_exponent<RT, MANTISSA, POW, SIGN, EXPONENT*10 + decvalue(FIRST), REST...>();
+        }
+        
+        
+        // This function parses the first character of the exponent
+        template<typename RT, unsigned long long MANTISSA, int POW>
+        constexpr RT parse_dec_exponent_sign()
+        {
+            static_assert(always_false<RT>::value, DEC_PARSE_ERROR);
+            return RT{};
+        }
+        
+        template<typename RT, unsigned long long MANTISSA, int POW, char FIRST, char... REST>
+        constexpr RT parse_dec_exponent_sign()
+        {
+            static_assert(isdigit(FIRST) or FIRST == '+' or FIRST == '-',
+                          DEC_PARSE_ERROR);
+            if constexpr(isdigit(FIRST))
+                return parse_dec_exponent<RT, MANTISSA, POW, true, decvalue(FIRST), REST...>();
+            else if constexpr(FIRST == '+')
+                return parse_dec_exponent<RT, MANTISSA, POW, true, 0, REST...>();
+            else
+                return parse_dec_exponent<RT, MANTISSA, POW, false, 0, REST...>();
+        }
+        
+        
+        // This function parses the characters that are afrter the period
+        template<typename RT, unsigned long long MANTISSA, int POW>
+        constexpr RT parse_dec_post_period()
+        {
+            return validate_dec<RT, MANTISSA, POW, true, 0>();
+        }
+        
+        template<typename RT, unsigned long long MANTISSA, int POW, char FIRST, char... REST>
+        constexpr RT parse_dec_post_period()
+        {
+            static_assert(isdigit(FIRST) or FIRST == 'e' or FIRST == 'E',
+                          DEC_PARSE_ERROR);
+            if constexpr(isdigit(FIRST))
+                return parse_dec_post_period<RT, MANTISSA*10 + decvalue(FIRST), POW-1, REST...>();
+            else
+                return parse_dec_exponent_sign<RT, MANTISSA, POW, REST...>();
+        }
+        
+        
+        // This character parses the first characters before the period
+        template<typename RT, unsigned long long MANTISSA>
+        constexpr RT parse_dec_pre_period()
+        {
+            return validate_dec<RT, MANTISSA, 0, true, 0>();
+        }
+        
+        template<typename RT, unsigned long long MANTISSA, char FIRST, char... REST>
+        constexpr RT parse_dec_pre_period()
+        {
+            static_assert(isdigit(FIRST) or FIRST == '.' or FIRST == 'e' or FIRST == 'E',
+                          DEC_PARSE_ERROR);
+            if constexpr(isdigit(FIRST))
+                return parse_dec_pre_period<RT, MANTISSA*10 + decvalue(FIRST), REST...>();
+            else if constexpr(FIRST == '.')
+                return parse_dec_post_period<RT, MANTISSA, 0, REST...>();
+            else
+                return parse_dec_exponent_sign<RT, MANTISSA, 0, REST...>();
+        }
+        
+        
+        template<typename RT, char... STR>
+        constexpr RT test_dec()
+        {
+            return parse_dec_pre_period<RT, 0, STR...>();
+        }
 
         // Don't pollute global namespace
         #undef HEX_PARSE_ERROR
@@ -275,12 +393,12 @@ namespace test
     namespace literal
     {
         template<char... STR>
-        auto operator""_sf()
+        constexpr auto operator""_sf()
         {
             if constexpr(detail::has_hex_prefix<STR...>())
                 return detail::test_hex<float, STR...>();
             else
-                return 3.14;//detail::test_dec<float, STR...>();
+                return detail::test_dec<float, STR...>();
         }
     }
 }   

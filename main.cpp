@@ -84,9 +84,10 @@ int main()
     float b = 0x9.3p1;
     std::cout << c.num << '/' << c.den << std::endl;
     */
+    static_assert(test::detail::is_pow_of_0_5(.25), "nul");
     
-    auto f = 0x0.8p-2587_sf;
-    std::cout << std::setprecision(40) << f << std::endl << 0x0.8p-2587f << std::endl;
+    auto f = .001953125_sf;
+    std::cout << std::setprecision(40) << f/2 << std::endl << .4589e+3f << std::endl;
 
     return 0;
 }
