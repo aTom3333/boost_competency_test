@@ -8,6 +8,11 @@
 namespace test
 {
     /*
+     * Implementations of the exercises of the competency test for Boost.SafeFloat using c++17
+     * https://github.com/boostorg/boost/wiki/Boost-Google-Summer-of-Code-2018
+     */
+    
+    /*
      * Provide a function receiving an integer (X) and a tuple (std::tuple<type1, type2, type3…>) 
      * into a tuple of vectors (std::tuple<std::vector,std::vector, std::vector, …>)
      * where each vector has X elements of each originally received in each tuple_element. 
@@ -52,9 +57,15 @@ namespace test
      */
     // Using std::get, the implementation is trivial
     template<typename T, typename Tuple>
-    auto& get_vector(Tuple&& t)
+    auto& get_vector(Tuple& t)
     {
-        return std::get<std::vector<T>>(std::forward<Tuple>(t));
+        return std::get<std::vector<T>>(t);
+    }
+    
+    template<typename T, typename Tuple>
+    const auto& get_vector(const Tuple& t)
+    {
+        return std::get<std::vector<T>>(t);
     }
     
     
@@ -171,7 +182,6 @@ namespace test
             // Is the exponent negative (positive power of 0.5 means negative power of 2)
             static_assert(count_shift(MANTISSA) + POW + (SIGN? EXPONENT : -EXPONENT) < 0,
                           VALUE_ERROR);
-            // Temporary
             return static_cast<RT>(MANTISSA) * trivial_pow(2.0l, POW + (SIGN? EXPONENT : -EXPONENT));
         }
         
@@ -281,6 +291,7 @@ namespace test
         {
             return value == 1 ? true
                  : value > 1 ? false
+                 : value == 0 ? false
                  : is_pow_of_0_5_impl(2*value);
         }
         
@@ -294,7 +305,7 @@ namespace test
         template<typename RT, unsigned long long MANTISSA, int POW, bool SIGN, int EXPONENT>
         constexpr RT validate_dec()
         {
-            constexpr RT value = MANTISSA * trivial_pow(10.0l, POW + (SIGN?EXPONENT:-EXPONENT));
+            constexpr RT value = (POW + (SIGN?EXPONENT:-EXPONENT) < 0 ? MANTISSA / trivial_pow(10.0l, -POW - (SIGN?EXPONENT:-EXPONENT)) : MANTISSA * trivial_pow(10.0l, POW + (SIGN?EXPONENT:-EXPONENT)));
             static_assert(is_pow_of_0_5(value), VALUE_ERROR);
             return value;
         }
@@ -327,7 +338,7 @@ namespace test
         template<typename RT, unsigned long long MANTISSA, int POW, char FIRST, char... REST>
         constexpr RT parse_dec_exponent_sign()
         {
-            static_assert(isdigit(FIRST) or FIRST == '+' or FIRST == '-',
+            static_assert(isdigit(FIRST) or ((FIRST == '+' or FIRST == '-') and sizeof...(REST) > 0),
                           DEC_PARSE_ERROR);
             if constexpr(isdigit(FIRST))
                 return parse_dec_exponent<RT, MANTISSA, POW, true, decvalue(FIRST), REST...>();
@@ -338,7 +349,7 @@ namespace test
         }
         
         
-        // This function parses the characters that are afrter the period
+        // This function parses the characters that are after the period
         template<typename RT, unsigned long long MANTISSA, int POW>
         constexpr RT parse_dec_post_period()
         {

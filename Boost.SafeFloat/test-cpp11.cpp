@@ -1,6 +1,9 @@
-#include "test-cpp17.hpp"
-#include "competency-test-cpp17.hpp"
+#include "test-cpp11.hpp"
+#include "competency-test-cpp11.hpp"
 #include <iostream>
+#include <type_traits>
+#include <iomanip>
+
 
 // Print vector
 template<typename T>
@@ -61,21 +64,13 @@ void test_floating_literal()
     static_assert(9.5367431640625e-07_sd == 9.5367431640625e-07, "Problem");
     static_assert(125.e-3_sf == 125.e-3f, "Problem");
     static_assert(0.005e2_sld == 0.005e2l, "Problem");
-    static_assert(0x1p-1_sf == 0x1p-1f, "Problem");
-    static_assert(0x8.0p-98_sd == 0x8.0p-98, "Problem");
-    static_assert(0x.00004p+3_sld == 0x.00004p+3l, "Problem");
     
     // Shouldn't compile
     //3_sf;
     //0.26_sd;
     //9.5367431640626e-07_sd;
     //1.0_sld;
-    //0x3.0p-7_sf;
     //0_sf;
-    //0x0p0_sd;
-    
-    // This one should be a parse error
-    //0x4_sf;
 }
 
 
@@ -85,13 +80,13 @@ void test_vectorize()
     std::tuple<int, const char*, double, Point> t(48, "foo", 3.14, {15.2, 48.6});
 
     auto tv = test::vectorize(4, t);
-    static_assert(std::is_same_v<decltype(tv),
+    static_assert(std::is_same<decltype(tv),
                       std::tuple<
                           std::vector<int>,
                           std::vector<const char*>,
                           std::vector<double>,
                           std::vector<Point>
-                      >>,
+                      >>::value,
                   "There is a problem");
     
     std::cout << tv << std::endl;
@@ -108,7 +103,7 @@ void test_get_vector()
     test::get_vector<const char*>(tv).clear();
     test::get_vector<Point>(tv).begin()->y = -0.47;
     std::cout << "After : " << tv << std::endl;
-
+    
     const auto tv2 = test::vectorize(2, t);
     // Overload for const tuple
     std::cout << test::get_vector<double>(tv2).front() << std::endl;
