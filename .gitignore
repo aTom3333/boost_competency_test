@@ -1,2 +1,9 @@
 .idea
 cmake-build-debug
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Debug
+boost_test.build
+boost_test.xcodeproj
+cmake_install.cmake

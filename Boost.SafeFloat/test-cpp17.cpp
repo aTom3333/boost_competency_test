@@ -57,6 +57,8 @@ void test_floating_literal()
     static_assert(0.5_sf == 0.5f, "Problem");
     static_assert(0.25_sf == 0.25f, "Problem");
     static_assert(.03125_sd == .03125, "Problem");
+    static_assert(1_sf == 1f, "Problem");
+    static_assert(2_sf == 2f, "Problem");
     static_assert(62.5e-3_sld == 62.5e-3l, "Problem");
     static_assert(9.5367431640625e-07_sd == 9.5367431640625e-07, "Problem");
     static_assert(125.e-3_sf == 125.e-3f, "Problem");
@@ -64,6 +66,7 @@ void test_floating_literal()
     static_assert(0x1p-1_sf == 0x1p-1f, "Problem");
     static_assert(0x8.0p-98_sd == 0x8.0p-98, "Problem");
     static_assert(0x.00004p+3_sld == 0x.00004p+3l, "Problem");
+    
     
     // Shouldn't compile
     //3_sf;
