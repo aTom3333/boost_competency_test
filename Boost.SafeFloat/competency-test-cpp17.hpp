@@ -27,14 +27,14 @@ namespace test
         // Utility function that return a vector of T with N t, just call the constructor
         // Useful as the type is automatically deduced
         template<typename T>
-        auto make_vector(unsigned int N, T t)
+        auto make_vector(std::size_t N, T t)
         {
             return std::vector<T>(N, t);
         }
 
         // Call make_vector for the Ith element for every I and pack the vectors in a tuple
         template<typename Tuple, std::size_t... I>
-        auto vectorize_impl(unsigned int N, Tuple&& t, std::index_sequence<I...>)
+        auto vectorize_impl(std::size_t N, Tuple&& t, std::index_sequence<I...>)
         {
             return std::make_tuple(make_vector(N, std::get<I>(std::forward<Tuple>(t)))...);
         }
@@ -43,7 +43,7 @@ namespace test
     // Feed the vectorize_impl function with the number, the tuple 
     // and an index sequence of the size of the tuple
     template<typename Tuple>
-    auto vectorize(unsigned int N, Tuple&& t)
+    auto vectorize(std::size_t N, Tuple&& t)
     {
         return detail::vectorize_impl(N, std::forward<Tuple>(t), 
                                       std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<Tuple>>>{});

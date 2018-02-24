@@ -37,13 +37,13 @@ namespace test
         using make_index_sequence = typename make_index_sequence_helper<N-1>::type;
         
         template<typename T>
-        std::vector<T> make_vector(unsigned int N, T t)
+        std::vector<T> make_vector(std::size_t N, T t)
         {
             return std::vector<T>(N, t);
         }
 
         template<typename Tuple, std::size_t... I>
-        auto vectorize_impl(unsigned int N, Tuple&& t, index_sequence<I...>)
+        auto vectorize_impl(std::size_t N, Tuple&& t, index_sequence<I...>)
             ->decltype(std::make_tuple(make_vector(N, std::get<I>(std::forward<Tuple>(t)))...))
         {
             return std::make_tuple(make_vector(N, std::get<I>(std::forward<Tuple>(t)))...);
@@ -51,7 +51,7 @@ namespace test
     }
 
     template<typename Tuple>
-    auto vectorize(unsigned int N, Tuple&& t)
+    auto vectorize(std::size_t N, Tuple&& t)
         ->decltype(detail::vectorize_impl(N, std::forward<Tuple>(t),
                                           detail::make_index_sequence<std::tuple_size<typename std::remove_reference<Tuple>::type>::value>{}))
     {
